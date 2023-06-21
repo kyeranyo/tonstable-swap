@@ -3,7 +3,7 @@
 // import { compile, NetworkProvider } from '@ton-community/blueprint';
 import { JettonWallet } from '../wrappers/JettonWallet';
 import { Address, beginCell, toNano } from 'ton-core';
-import { compile, NetworkProvider } from '@ton-community/blueprint';
+import { compile, NetworkProvider } from '@ton-communi ty/blueprint';
 
 import fs = require('fs');
 

@@ -81,7 +81,7 @@ export class JettonMinter implements Contract {
     }
 
     async getTotalsupply(provider: ContractProvider): Promise<bigint> {
-        const result = await provider.get('get_jetton_data', []);
+        const result = await provider.get('get_total_supply_data', []);
         return result.stack.readBigNumber();
     }
 

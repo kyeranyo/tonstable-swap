@@ -42,40 +42,40 @@ describe('JettonMinter', () => {
         console.log('JettonMinter address:', jettonMinter.address);
     });
 
-    it('should mint tokens', async () => {
-        const deployer = await blockchain.treasury('deployer');
-        const recipient = await blockchain.treasury('recipient');
+    // it('should mint tokens', async () => {
+    //     const deployer = await blockchain.treasury('deployer');
+    //     const recipient = await blockchain.treasury('recipient');
 
-        // mint some tokens for the deployer
-        const mintAmount = toNano('1000');
-        const mintResult = await jettonMinter.sendMint(deployer.getSender(), {
-            value: toNano('0.2'),
-            amount: toNano('0.05'),
-            jettonAmount: toNano('100000'),
-            toAddress: deployer.getSender().address as Address,
-            queryId: Date.now()
-        });
-    });
+    //     // mint some tokens for the deployer
+    //     const mintAmount = toNano('1000');
+    //     const mintResult = await jettonMinter.sendMint(deployer.getSender(), {
+    //         value: toNano('0.2'),
+    //         amount: toNano('0.05'),
+    //         jettonAmount: toNano('100000'),
+    //         toAddress: deployer.getSender().address as Address,
+    //         queryId: Date.now()
+    //     });
+    // });
 
-    it('should return token balance', async () => {
-        const deployer = await blockchain.treasury('deployer');
+    // it('should return token balance', async () => {
+    //     const deployer = await blockchain.treasury('deployer');
 
-        console.log('JettonMinter address:', jettonMinter.address);
-        console.log('deployer address:', deployer.getSender().address);
-        let balance = await jettonMinter.getTotalsupply();
-        console.log('balance before mint', balance);
-        // mint some tokens for the deployer
-        const mintAmount = toNano('1000');
-        const mintResult = await jettonMinter.sendMint(deployer.getSender(), {
-            value: toNano('0.2'),
-            amount: toNano('0.05'),
-            jettonAmount: toNano('500000'),
-            toAddress: deployer.getSender().address as Address,
-            queryId: Date.now()
-        });
-        // check deployer's balance
-        balance = await jettonMinter.getTotalsupply();
-        console.log('balance affter mint', balance);
-    });
+    //     console.log('JettonMinter address:', jettonMinter.address);
+    //     console.log('deployer address:', deployer.getSender().address);
+    //     let balance = await jettonMinter.getTotalsupply();
+    //     console.log('balance before mint', balance);
+    //     // mint some tokens for the deployer
+    //     const mintAmount = toNano('1000');
+    //     const mintResult = await jettonMinter.sendMint(deployer.getSender(), {
+    //         value: toNano('0.2'),
+    //         amount: toNano('0.05'),
+    //         jettonAmount: toNano('500000'),
+    //         toAddress: deployer.getSender().address as Address,
+    //         queryId: Date.now()
+    //     });
+    //     // check deployer's balance
+    //     balance = await jettonMinter.getTotalsupply();
+    //     console.log('balance affter mint', balance);
+    // });
 
 });

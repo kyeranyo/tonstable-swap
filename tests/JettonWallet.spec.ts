@@ -4,7 +4,7 @@ import { JettonWallet } from '../wrappers/JettonWallet';
 import '@ton-community/test-utils';
 import { Address, beginCell } from 'ton-core';
 import { compile, NetworkProvider } from '@ton-community/blueprint';
-
+import { JettonMinter } from '../wrappers/JettonMinter';
 
 import * as fs from 'fs';
 
@@ -55,8 +55,6 @@ describe('JettonWallet', () => {
         // check balance
         const balance = await jettonWallet.get_wallet_data();
         console.log('balance:', balance);
-
-
 
     });
 });
