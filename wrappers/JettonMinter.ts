@@ -13,11 +13,11 @@ export function jettonMinterConfigToCell(config: JettonMinterConfig): Cell {
         .storeAddress(config.adminAddress)
         .storeRef(config.content)
         .storeRef(config.jettonWalletCode)
-    .endCell();
+        .endCell();
 }
 
 export class JettonMinter implements Contract {
-    constructor(readonly address: Address, readonly init?: { code: Cell; data: Cell }) {}
+    constructor(readonly address: Address, readonly init?: { code: Cell; data: Cell }) { }
 
     static createFromAddress(address: Address) {
         return new JettonMinter(address);
@@ -37,7 +37,7 @@ export class JettonMinter implements Contract {
         });
     }
 
-    async sendMint(provider: ContractProvider, via: Sender, 
+    async sendMint(provider: ContractProvider, via: Sender,
         opts: {
             toAddress: Address;
             jettonAmount: bigint;
@@ -63,13 +63,13 @@ export class JettonMinter implements Contract {
                         .storeAddress(this.address)
                         .storeCoins(0)
                         .storeUint(0, 1)
-                    .endCell()
+                        .endCell()
                 )
-            .endCell(),
+                .endCell(),
         });
     }
 
-    async getWalletAddress(provider: ContractProvider, address: Address) : Promise<Address> {
+    async getWalletAddress(provider: ContractProvider, address: Address): Promise<Address> {
         const result = await provider.get('get_wallet_address', [
             {
                 type: 'slice',
@@ -80,9 +80,9 @@ export class JettonMinter implements Contract {
         return result.stack.readAddress();
     }
 
-    async getTotalsupply(provider: ContractProvider) : Promise<bigint> {
+    async getTotalsupply(provider: ContractProvider): Promise<bigint> {
         const result = await provider.get('get_jetton_data', []);
         return result.stack.readBigNumber();
     }
-  
+
 }

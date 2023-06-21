@@ -80,10 +80,13 @@ export class JettonWallet implements Contract {
                 .endCell(),
         });
     }
-    async getsupply(provider: ContractProvider): Promise<bigint> {
-        const result = await provider.get('get_total_supply_data', []);
+
+    async get_wallet_data(provider: ContractProvider): Promise<bigint> {
+        const result = await provider.get('get_wallet_data', []);
         return result.stack.readBigNumber();
+
     }
+
 }
 
 

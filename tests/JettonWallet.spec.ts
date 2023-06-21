@@ -46,15 +46,17 @@ describe('JettonWallet', () => {
         // print all variables
         console.log('JettonWallet address:', jettonWallet.address);
     });
-    it('should transfer tokens', async () => {
+
+
+    it('should check balance', async () => {
         const deployer = await blockchain.treasury('deployer');
         const recipient = await blockchain.treasury('recipient');
 
-        // mint some tokens for the deployer
-        const mintAmount = toNano('1000');        // check deployer's balance
+        // check balance
+        const balance = await jettonWallet.get_wallet_data();
+        console.log('balance:', balance);
+
+
 
     });
-
-
-
 });
