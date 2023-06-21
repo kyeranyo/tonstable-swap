@@ -260,3 +260,4 @@ int gas_consumption() asm "15000000 PUSHINT"; ;; 0.015 TON
 (int, slice, slice, cell) get_wallet_data() method_id {
   return load_data();
 }
+

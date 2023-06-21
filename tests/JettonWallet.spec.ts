@@ -55,22 +55,6 @@ describe('JettonWallet', () => {
 
     });
 
-    // it('should return token balance', async () => {
-    //     const deployer = await blockchain.treasury('deployer');
 
-    //     // mint some tokens for the deployer
-    //     const mintAmount = toNano('1000');
-    //     await jettonWallet.sendMint(deployer.getSender(), {
-    //         toAddress: deployer.getSender().address,
-    //         jettonAmount: mintAmount,
-    //         amount: 0,
-    //         queryId: 1,
-    //         value: 0,
-    //     });
-
-    //     // check deployer's balance
-    //     const balance = await jettonWallet.getBalance(deployer.getSender().address);
-    //     expect(balance).toEqual(mintAmount);
-    // });
 
 });
