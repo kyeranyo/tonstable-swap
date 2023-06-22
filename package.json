@@ -1,13 +1,13 @@
 {
-    "name": "6",
+    "name": "mastering-sandbox-testing",
     "version": "0.0.1",
     "license": "MIT",
     "scripts": {
         "test": "jest"
     },
     "devDependencies": {
-        "@ton-community/blueprint": "^0.8.0",
-        "@ton-community/sandbox": "^0.8.0",
+        "@ton-community/blueprint": "^0.9.0",
+        "@ton-community/sandbox": "^0.10.0",
         "@ton-community/test-utils": "^0.2.0",
         "@types/jest": "^29.5.0",
         "@types/node": "^18.15.5",
