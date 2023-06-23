@@ -43,6 +43,18 @@ describe('Minter', () => {
         // blockchain and minter are ready to use
     });
 
+    // it('should mint jettons', async () => {
+    //     const res = await minter.sendMint(admin.getSender(), {
+    //         value: toNano('0.1'),
+    //         toAddress: user.address,
+    //         amount: toNano('0.05'),
+    //         jettonAmount: toNano('100'),
+    //     });
+
+
+    // });
+
+
     it('should mint jettons', async () => {
         const res = await minter.sendMint(admin.getSender(), {
             value: toNano('0.1'),

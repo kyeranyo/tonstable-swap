@@ -7,7 +7,7 @@ export function walletConfigToCell(config: WalletConfig): Cell {
 }
 
 export class Wallet implements Contract {
-    constructor(readonly address: Address, readonly init?: { code: Cell; data: Cell }) { }
+    constructor(readonly address: Address, readonly init?: { code: Cell; data: Cell }) {}
 
     static createFromAddress(address: Address) {
         return new Wallet(address);
@@ -48,7 +48,7 @@ export class Wallet implements Contract {
                 .storeUint(0, 1)
                 .storeCoins(opts.fwdAmount)
                 .storeUint(0, 1)
-                .endCell(),
+            .endCell(),
         });
     }
 
@@ -68,9 +68,9 @@ export class Wallet implements Contract {
                 .storeCoins(opts.jettonAmount)
                 .storeAddress(via.address)
                 .storeUint(0, 1)
-                .endCell(),
+            .endCell(),
         });
-    }
+    }  
 
     // with internal transfer we create new function
     async sendTransfer_internal(provider: ContractProvider, via: Sender,
@@ -86,7 +86,7 @@ export class Wallet implements Contract {
             value: opts.value,
             sendMode: SendMode.PAY_GAS_SEPARATELY,
             body: beginCell()
-                .storeUint(0x178d4519, 32) //change op value: op::internal_tranfer, check value in contract/imports/op-codes.fc
+                .storeUint(0xf8a7ea5, 32) //change op value: op::internal_tranfer, check value in contract/imports/op-codes.fc
                 .storeUint(opts.queryId, 64)
                 .storeCoins(opts.jettonAmount)
                 .storeAddress(opts.toAddress)
@@ -94,22 +94,32 @@ export class Wallet implements Contract {
                 .storeUint(0, 1)
                 .storeCoins(opts.fwdAmount)
                 .storeUint(0, 1)
-                .endCell(),
+            .endCell(),
         });
     }
 
 
-    // async get_balance(provider: ContractProvider) {
-    //     const result = (await provider.get('get_balance', [])).stack;
-    //     return result;
+    //create new function to get balance of owner
+
+    // async getBalance(provider: ContractProvider): Promise<bigint> {
+    //     const result = await provider.get('get_balance', []);
+    //     return result.stack.readBigNumber();
     // }
 
-    async get_wallet_data(provider: ContractProvider) {
-        const result = (await provider.get('get_wallet_data', [])).stack;
-        return result;
+    // async getBalance(provider: ContractProvider): Promise<bigint> {
+    //     const result = (await provider.get('get_balance', []));
+    //     return result.stack.readBigNumber();
+    // }
+
+    async getBalance(provider: ContractProvider): Promise<bigint> {
+        const result = (await provider.get('get_wallet_balance', [])).stack;
+        // result.skip(4);
+        return result.readBigNumber();
     }
 
-
-
+    async getStatus(provider: ContractProvider): Promise<bigint> {
+        const result = await provider.get('get_status', []);
+        return result.stack.readBigNumber();
+    }
 
 }
