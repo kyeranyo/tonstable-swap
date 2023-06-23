@@ -7,7 +7,7 @@ export function walletConfigToCell(config: WalletConfig): Cell {
 }
 
 export class Wallet implements Contract {
-    constructor(readonly address: Address, readonly init?: { code: Cell; data: Cell }) {}
+    constructor(readonly address: Address, readonly init?: { code: Cell; data: Cell }) { }
 
     static createFromAddress(address: Address) {
         return new Wallet(address);
@@ -48,7 +48,7 @@ export class Wallet implements Contract {
                 .storeUint(0, 1)
                 .storeCoins(opts.fwdAmount)
                 .storeUint(0, 1)
-            .endCell(),
+                .endCell(),
         });
     }
 
@@ -68,34 +68,48 @@ export class Wallet implements Contract {
                 .storeCoins(opts.jettonAmount)
                 .storeAddress(via.address)
                 .storeUint(0, 1)
-            .endCell(),
+                .endCell(),
         });
-    }  
-
-// with internal transfer we create new function
-async sendTransfer_internal(provider: ContractProvider, via: Sender,
-    opts: {
-        value: bigint;
-        toAddress: Address;
-        queryId: number;
-        fwdAmount: bigint;
-        jettonAmount: bigint;
     }
-) {
-    await provider.internal(via, {
-        value: opts.value,
-        sendMode: SendMode.PAY_GAS_SEPARATELY,
-        body: beginCell()
-            .storeUint(0x178d4519, 32) //change op value: op::internal_tranfer, check value in contract/imports/op-codes.fc
-            .storeUint(opts.queryId, 64)
-            .storeCoins(opts.jettonAmount)
-            .storeAddress(opts.toAddress)
-            .storeAddress(via.address)
-            .storeUint(0, 1)
-            .storeCoins(opts.fwdAmount)
-            .storeUint(0, 1)
-        .endCell(),
-    });
-}
+
+    // with internal transfer we create new function
+    async sendTransfer_internal(provider: ContractProvider, via: Sender,
+        opts: {
+            value: bigint;
+            toAddress: Address;
+            queryId: number;
+            fwdAmount: bigint;
+            jettonAmount: bigint;
+        }
+    ) {
+        await provider.internal(via, {
+            value: opts.value,
+            sendMode: SendMode.PAY_GAS_SEPARATELY,
+            body: beginCell()
+                .storeUint(0x178d4519, 32) //change op value: op::internal_tranfer, check value in contract/imports/op-codes.fc
+                .storeUint(opts.queryId, 64)
+                .storeCoins(opts.jettonAmount)
+                .storeAddress(opts.toAddress)
+                .storeAddress(via.address)
+                .storeUint(0, 1)
+                .storeCoins(opts.fwdAmount)
+                .storeUint(0, 1)
+                .endCell(),
+        });
+    }
+
+
+    // async get_balance(provider: ContractProvider) {
+    //     const result = (await provider.get('get_balance', [])).stack;
+    //     return result;
+    // }
+
+    async get_wallet_data(provider: ContractProvider) {
+        const result = (await provider.get('get_wallet_data', [])).stack;
+        return result;
+    }
+
+
+
 
 }

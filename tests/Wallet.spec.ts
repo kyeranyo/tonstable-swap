@@ -1,7 +1,7 @@
-import { Blockchain, SandboxContract, TreasuryContract} from '@ton-community/sandbox';
-import {beginCell, Cell, toNano } from 'ton-core';
+import { Blockchain, SandboxContract, TreasuryContract } from '@ton-community/sandbox';
+import { beginCell, Cell, toNano } from 'ton-core';
 import { Wallet } from '../wrappers/Wallet';
-import {randomAddress} from '@ton-community/test-utils';
+import { randomAddress } from '@ton-community/test-utils';
 import { compile } from '@ton-community/blueprint';
 import { Minter } from '../wrappers/Minter';
 
@@ -20,19 +20,19 @@ describe('Wallet', () => {
 
     let admin: SandboxContract<TreasuryContract>;
     let sender: SandboxContract<Minter>;
-    
+
 
     let user: SandboxContract<TreasuryContract>;
     let receiver: SandboxContract<Minter>;
 
-// temporarily initialize variables for all test blocks it
+    // temporarily initialize variables for all test blocks it
     beforeAll(async () => {
         code = await compile('Wallet');
         codeminter = await compile('Minter');
 
-    // });
+        // });
 
-    // beforeEach(async () => {
+        // beforeEach(async () => {
         blockchain = await Blockchain.create();
         admin = await blockchain.treasury('admin');
         user = await blockchain.treasury('user');
@@ -45,9 +45,9 @@ describe('Wallet', () => {
         receiver = blockchain.openContract(Minter.createFromConfig({
             adminAddress: user.address,
             jettonWalletCode: code
-        }, codeminter));        
+        }, codeminter));
 
-///////////////////////////////////////////////////////////////////////////////////////
+        ///////////////////////////////////////////////////////////////////////////////////////
         const deployer_receiver = await blockchain.treasury('deployer');
         const deployResult_receiver = await receiver.sendDeploy(deployer_receiver.getSender(), toNano('0.05'));
 
@@ -60,7 +60,7 @@ describe('Wallet', () => {
         //     success: true,
         // });
 
-///////////////////////////////////////////////////////////////////////////////////////
+        ///////////////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -77,7 +77,7 @@ describe('Wallet', () => {
     });
 
 
-//////////////////Write blocks test/////////////////////////////////////////////////////////
+    //////////////////Write blocks test/////////////////////////////////////////////////////////
     it('should mint jettons for sender', async () => {
         const res = await sender.sendMint(admin.getSender(), {
             value: toNano('0.1'),
@@ -111,10 +111,10 @@ describe('Wallet', () => {
         // const deployer = await blockchain.treasury('deployer');
         console.log("B1");
         const oldTotalSupply = await receiver.getTotalSupply();
-        console.log('TotalSupply before transfering:',oldTotalSupply);   
+        console.log('TotalSupply before transfering:', oldTotalSupply);
         console.log("B2");
 
-        const sendtransfer  = await wallet.sendTransfer_internal(admin.getSender(), {
+        const sendtransfer = await wallet.sendTransfer_internal(admin.getSender(), {
             value: toNano('0.2'),
             fwdAmount: toNano('0.05'),
             jettonAmount: toNano('20'),
@@ -130,8 +130,19 @@ describe('Wallet', () => {
         });
         console.log("B3");
         const newTotalSupply = await receiver.getTotalSupply();
-        console.log('TotalSupply after transfering: ' ,newTotalSupply);
+        console.log('TotalSupply after transfering: ', newTotalSupply);
         // console.log(randomAddress);
+    });
+
+
+    it('should check balance', async () => {
+        const admin = await blockchain.treasury('admin');
+        const user = await blockchain.treasury('user');
+
+        const balance = await wallet.get_wallet_data();
+
+        console.log('Balance before transfering: ', balance);
+
     });
 
 
