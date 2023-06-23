@@ -222,20 +222,28 @@ const gas_consumption = 10000000; ;; 0.01 TON
   }
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  ;; if (op == op::transfer) { ;; burn
-  ;;   burn_tokens(in_msg_body, sender_address, msg_value, fwd_fee);
-  ;;   return ();
-  ;; }
 
   throw(error::wrong_op);
 }
 
-(int, slice, slice, cell) get_wallet_data() method_id {
-  (_, int balance, slice owner_address, slice jetton_master_address, cell jetton_wallet_code) = load_data();
-  return (balance, owner_address, jetton_master_address, jetton_wallet_code);
-}
+;; (int, slice, slice, cell) get_wallet_data() method_id {
+;;   (_, int balance, slice owner_address, slice jetton_master_address, cell jetton_wallet_code) = load_data();
+;;   return (balance, owner_address, jetton_master_address, jetton_wallet_code);
+;; }
+
+;; int get_wallet_data() method_id {
+;;   (_, int balance, slice owner_address, slice jetton_master_address, cell jetton_wallet_code) = load_data();
+;;   return balance;
+;; }
+
 
 int get_status() method_id {
   (int status, _, _, _, _) = load_data();
   return status;
+}
+
+int get_wallet_balance() method_id {
+  (_, int balance, _, _, _) = load_data();
+  ;; (int status, int balance, slice owner_address, slice jetton_master_address, cell jetton_wallet_code) = load_data();
+  return balance;
 }

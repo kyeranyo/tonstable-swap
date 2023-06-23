@@ -72,30 +72,54 @@ export class Wallet implements Contract {
         });
     }  
 
-// with internal transfer we create new function
-async sendTransfer_internal(provider: ContractProvider, via: Sender,
-    opts: {
-        value: bigint;
-        toAddress: Address;
-        queryId: number;
-        fwdAmount: bigint;
-        jettonAmount: bigint;
+    // with internal transfer we create new function
+    async sendTransfer_internal(provider: ContractProvider, via: Sender,
+        opts: {
+            value: bigint;
+            toAddress: Address;
+            queryId: number;
+            fwdAmount: bigint;
+            jettonAmount: bigint;
+        }
+    ) {
+        await provider.internal(via, {
+            value: opts.value,
+            sendMode: SendMode.PAY_GAS_SEPARATELY,
+            body: beginCell()
+                .storeUint(0xf8a7ea5, 32) //change op value: op::internal_tranfer, check value in contract/imports/op-codes.fc
+                .storeUint(opts.queryId, 64)
+                .storeCoins(opts.jettonAmount)
+                .storeAddress(opts.toAddress)
+                .storeAddress(via.address)
+                .storeUint(0, 1)
+                .storeCoins(opts.fwdAmount)
+                .storeUint(0, 1)
+            .endCell(),
+        });
     }
-) {
-    await provider.internal(via, {
-        value: opts.value,
-        sendMode: SendMode.PAY_GAS_SEPARATELY,
-        body: beginCell()
-            .storeUint(0x178d4519, 32) //change op value: op::internal_tranfer, check value in contract/imports/op-codes.fc
-            .storeUint(opts.queryId, 64)
-            .storeCoins(opts.jettonAmount)
-            .storeAddress(opts.toAddress)
-            .storeAddress(via.address)
-            .storeUint(0, 1)
-            .storeCoins(opts.fwdAmount)
-            .storeUint(0, 1)
-        .endCell(),
-    });
-}
+
+
+    //create new function to get balance of owner
+
+    // async getBalance(provider: ContractProvider): Promise<bigint> {
+    //     const result = await provider.get('get_balance', []);
+    //     return result.stack.readBigNumber();
+    // }
+
+    // async getBalance(provider: ContractProvider): Promise<bigint> {
+    //     const result = (await provider.get('get_balance', []));
+    //     return result.stack.readBigNumber();
+    // }
+
+    async getBalance(provider: ContractProvider): Promise<bigint> {
+        const result = (await provider.get('get_wallet_balance', [])).stack;
+        // result.skip(4);
+        return result.readBigNumber();
+    }
+
+    async getStatus(provider: ContractProvider): Promise<bigint> {
+        const result = await provider.get('get_status', []);
+        return result.stack.readBigNumber();
+    }
 
 }
