@@ -12,11 +12,11 @@ export function jettonWalletConfigToCell(config: JettonWalletConfig): Cell {
         .storeAddress(config.ownerAddress)
         .storeAddress(config.minterAddress)
         .storeRef(config.walletCode)
-        .endCell();
+    .endCell();
 }
 
 export class JettonWallet implements Contract {
-    constructor(readonly address: Address, readonly init?: { code: Cell; data: Cell }) { }
+    constructor(readonly address: Address, readonly init?: { code: Cell; data: Cell }) {}
 
     static createFromAddress(address: Address) {
         return new JettonWallet(address);
@@ -57,7 +57,7 @@ export class JettonWallet implements Contract {
                 .storeUint(0, 1)
                 .storeCoins(opts.fwdAmount)
                 .storeUint(0, 1)
-                .endCell(),
+            .endCell(),
         });
     }
 
@@ -77,16 +77,11 @@ export class JettonWallet implements Contract {
                 .storeCoins(opts.jettonAmount)
                 .storeAddress(via.address)
                 .storeUint(0, 1)
-                .endCell(),
+            .endCell(),
         });
-    }
-    async getsupply(provider: ContractProvider): Promise<bigint> {
-        const result = await provider.get('get_total_supply_data', []);
-        return result.stack.readBigNumber();
+    }    
+    async getBalance(provider: ContractProvider): Promise<bigint> {
+        const result = (await provider.get('get_wallet_balance', [])).stack;
+        return result.readBigNumber();
     }
 }
-
-
-
-
-

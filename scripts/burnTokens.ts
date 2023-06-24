@@ -10,7 +10,7 @@ export async function run(provider: NetworkProvider, args: string[]) {
     const jettonWallet = provider.open(JettonWallet.createFromAddress(address));
 
         await jettonWallet.sendBurn(provider.sender(), {
-            value: toNano('0.2'),
+            value: toNano('0.02'),
             jettonAmount: toNano('50'),
             queryId: Date.now()
         });
