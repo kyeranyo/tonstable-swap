@@ -1,4 +1,4 @@
-# mastering-sandbox-testing
+# Walllet
 
 ## Project structure
 

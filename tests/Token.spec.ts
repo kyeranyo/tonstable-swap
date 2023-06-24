@@ -1,31 +1,31 @@
 import { Blockchain, SandboxContract } from '@ton-community/sandbox';
 import { Cell, toNano } from 'ton-core';
-import { Wallet } from '../wrappers/Wallet';
+import { Token } from '../wrappers/Token';
 import '@ton-community/test-utils';
 import { compile } from '@ton-community/blueprint';
 
-describe('Wallet', () => {
+describe('Token', () => {
     let code: Cell;
 
     beforeAll(async () => {
-        code = await compile('Wallet');
+        code = await compile('Token');
     });
 
     let blockchain: Blockchain;
-    let wallet: SandboxContract<Wallet>;
+    let token: SandboxContract<Token>;
 
     beforeEach(async () => {
         blockchain = await Blockchain.create();
 
-        wallet = blockchain.openContract(Wallet.createFromConfig({}, code));
+        token = blockchain.openContract(Token.createFromConfig({}, code));
 
         const deployer = await blockchain.treasury('deployer');
 
-        const deployResult = await wallet.sendDeploy(deployer.getSender(), toNano('0.05'));
+        const deployResult = await token.sendDeploy(deployer.getSender(), toNano('0.05'));
 
         expect(deployResult.transactions).toHaveTransaction({
             from: deployer.address,
-            to: wallet.address,
+            to: token.address,
             deploy: true,
             success: true,
         });
@@ -33,6 +33,6 @@ describe('Wallet', () => {
 
     it('should deploy', async () => {
         // the check is done inside beforeEach
-        // blockchain and wallet are ready to use
+        // blockchain and token are ready to use
     });
 });

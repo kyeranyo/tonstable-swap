@@ -1,16 +1,9 @@
-const workchain = 0;
-
-() force_chain(slice addr) impure {
-  (int wc, _) = parse_std_addr(addr);
-  throw_unless(error::wrong_workchain, wc == workchain);
+() send_grams(slice address, int amount) impure {
+  cell msg = begin_cell()
+    .store_uint (0x18, 6) ;; bounce
+    .store_slice(address) ;; 267 bit address
+    .store_grams(amount)
+    .store_uint(0, 107) ;; 106 zeroes +  0 as an indicator that there is no cell with the data
+    .end_cell(); 
+  send_raw_message(msg, 3); ;; mode, 2 for ignoring errors, 1 for sender pays fees, 64 for returning inbound message value
 }
-
-int is_resolvable?(slice addr) inline {
-    (int wc, _) = parse_std_addr(addr);
-
-    return wc == workchain;
-}
-
-const mint_gas_consumption = 20000000;
-
-const provide_address_gas_consumption = 10000000;
