@@ -34,5 +34,12 @@ describe('Wallet', () => {
     it('should deploy', async () => {
         // the check is done inside beforeEach
         // blockchain and wallet are ready to use
+        console.log('Wallet address:', wallet.address);
+    });
+
+    it('should get wallet data', async () => {
+        const deployer = await blockchain.treasury('deployer');
+        const result = await wallet.get_wallet_data();
+        console.log('Wallet data:', result.toString());
     });
 });

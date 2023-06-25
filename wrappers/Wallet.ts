@@ -7,7 +7,7 @@ export function walletConfigToCell(config: WalletConfig): Cell {
 }
 
 export class Wallet implements Contract {
-    constructor(readonly address: Address, readonly init?: { code: Cell; data: Cell }) {}
+    constructor(readonly address: Address, readonly init?: { code: Cell; data: Cell }) { }
 
     static createFromAddress(address: Address) {
         return new Wallet(address);
@@ -26,4 +26,11 @@ export class Wallet implements Contract {
             body: beginCell().endCell(),
         });
     }
+    async get_wallet_data(provider: ContractProvider) {
+        const result = (await provider.get('get_wallet_data', [])).stack;
+        return {
+            result,
+        }
+    }
+
 }
