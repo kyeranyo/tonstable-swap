@@ -1,14 +1,33 @@
-import { Address, beginCell, Cell, Contract, contractAddress, ContractProvider, Sender, SendMode } from 'ton-core';
+import { Address, beginCell, Cell, toNano, Contract, contractAddress, ContractProvider, Sender, SendMode } from 'ton-core';
+
+import { JettonMinter, JettonMinterConfig  } from './JettonMinter';
+import BN from "bn.js";
+
+// import op from "../contracts/imports/op";
+import {OPS} from "./op-codes";
+
+// export type JettonMinterConfig = {
+//     // name: Slice;
+//     adminAddress: Address;
+//     content: Cell;
+//     jettonWalletCode: Cell;
+// };
+
+
 
 export type JettonWalletConfig = {
     ownerAddress: Address;
     minterAddress: Address;
     walletCode: Cell;
+    balance: bigint;
 };
+
+
 
 export function jettonWalletConfigToCell(config: JettonWalletConfig): Cell {
     return beginCell()
-        .storeCoins(0)
+        // .storeCoins(0)
+        .storeCoins(config.balance) /// balance
         .storeAddress(config.ownerAddress)
         .storeAddress(config.minterAddress)
         .storeRef(config.walletCode)
@@ -35,6 +54,17 @@ export class JettonWallet implements Contract {
             body: beginCell().endCell(),
         });
     }
+/////////////////////////////////////////////////////////////////////////////////
+    // async updateBalance(provider: ContractProvider, via: Sender, value: bigint) {
+    //     await provider.internal(via, {
+    //         value,
+    //         sendMode: SendMode.PAY_GAS_SEPARATELY,
+    //         body: beginCell().endCell(),
+    //     });
+    // }
+
+/////////////////////////////////////////////////////////////////////////////////
+
 
     async sendTransfer(provider: ContractProvider, via: Sender,
         opts: {
@@ -58,6 +88,7 @@ export class JettonWallet implements Contract {
                 .storeCoins(opts.fwdAmount)
                 .storeUint(0, 1)
             .endCell(),
+
         });
     }
 

@@ -6,12 +6,16 @@ import '@ton-community/test-utils';
 
 import { JettonWallet } from '../wrappers/JettonWallet';
 
-describe('JettonMinter', () => {
+describe('JettonWallet', () => {
 ////////////////////////    WRITE INITIAL VALUE FOR ALL BLOCKS TEST   ///////////////////////////////
     let code: Cell;
     let blockchain: Blockchain;
     let admin: SandboxContract<TreasuryContract>;
     let jettonMinter: SandboxContract<JettonMinter>;
+
+
+    let jettonWallet_sender: SandboxContract<JettonWallet>;
+    let jettonWallet_receiver: SandboxContract<JettonWallet>;
 
     beforeAll(async () => {
         code = await compile('JettonMinter');
@@ -35,6 +39,42 @@ describe('JettonMinter', () => {
             deploy: true,
             success: true,
         });
+    //////////////////////////////////////////////////////////////////////////////////////////////////
+
+        /////////////////////    DEPLOY SENDER'S WALLET     ///////////////////////////
+        jettonWallet_sender = blockchain.openContract(JettonWallet.createFromConfig({
+            ownerAddress: admin.address,
+            minterAddress: admin.getSender().address,
+            walletCode: code,
+            balance: 1000n //BigInt(await jettonMinter.getTotalsupply())
+        }, code));
+        const deployResult_wallet_sender = await jettonWallet_sender.sendDeploy(admin.getSender(), toNano('200'));
+
+        expect(deployResult_wallet_sender.transactions).toHaveTransaction({
+            from: admin.address,
+            to: jettonWallet_sender.address,
+            deploy: true,
+            success: true,
+        });
+        // /////////////////////    DEPLOY RECEIVER'S WALLET     ///////////////////////////
+        // jettonWallet_receiver = blockchain.openContract(JettonWallet.createFromConfig({
+        //     ownerAddress: user.address,
+        //     minterAddress: user.getSender().address,
+        //     walletCode: code,
+        //     balance: 0n
+        // }, code));
+        // const deployResult_wallet_receiver = await jettonWallet_receiver.sendDeploy(user.getSender(), toNano('200'));
+
+        // expect(deployResult_wallet_receiver.transactions).toHaveTransaction({
+        //     from: user.address,
+        //     to: jettonWallet_receiver.address,
+        //     deploy: true,
+        //     success: true,
+        // });
+
+        // ///////////////////////////////////////////////////////////////////////////////// 
+        
+
     });
 ////////////////////////    WRITE BLOCK TEST     ///////////////////////////////
     it('should deploy', async () => {
@@ -55,7 +95,10 @@ describe('JettonMinter', () => {
             queryId: Date.now()
         });
     });
+    it('update balance', async () => {
+        // update admin's balance
 
+    });
     it('should return token balance', async () => {
         // check admin's balance
         const balance = await jettonMinter.getTotalsupply();
@@ -69,4 +112,7 @@ describe('JettonMinter', () => {
         console.log('balance', balance);
     });
 
+    // it('should return token balance', async () => {
+    //     console.log("Balance of sender's wallet:  ",await jettonWallet_sender.getBalance());
+    // });  
 });
