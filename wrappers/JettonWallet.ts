@@ -81,10 +81,11 @@ export class JettonWallet implements Contract {
             body: beginCell()
                 .storeUint(0xf8a7ea5, 32)
                 .storeUint(opts.queryId, 64)
-                .storeCoins(opts.jettonAmount)
+                .storeCoins(opts.jettonAmount) //
                 .storeAddress(opts.toAddress)
                 .storeAddress(via.address)
                 .storeUint(0, 1)
+                // .storeDict(null)
                 .storeCoins(opts.fwdAmount)
                 .storeUint(0, 1)
             .endCell(),
@@ -115,4 +116,37 @@ export class JettonWallet implements Contract {
         const result = (await provider.get('get_wallet_balance', [])).stack;
         return result.readBigNumber();
     }
+
+    
+    // async internalTransfer(provider: ContractProvider, via: Sender,
+    //     opts: { //balance,owner_address,jetton_master_address,jetton_wallet_code
+    //         value: bigint;
+    //         balance: bigint;
+    //         owner_address: Address;
+    //         jetton_master_address: Address;
+    //         jetton_wallet_code: Cell;
+    //     }
+    // ) {
+    //     await provider.internal(via, {
+    //         value: opts.value,
+    //         sendMode: SendMode.PAY_GAS_SEPARATELY,
+    //         body: beginCell()
+    //         .storeUint(0x178d4519, 32)
+    //         .storeCoins(opts.balance)
+    //         .storeAddress(opts.owner_address)
+    //         .storeAddress(opts.jetton_master_address)
+    //         .storeRef(opts.jetton_wallet_code)
+    //        .endCell(),
+
+    //        begin_cell()
+    //        .store_uint(op::internal_transfer(), 32)
+    //        .store_uint(query_id, 64)
+    //        .store_coins(jetton_amount)
+    //        .store_slice(owner_address)
+    //        .store_slice(response_address)
+    //        .store_coins(forward_ton_amount)
+    //        .store_slice(either_forward_payload)
+    //        .end_cell();           
+    //     });
+    // }
 }
