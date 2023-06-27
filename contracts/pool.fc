@@ -1,0 +1,51 @@
+;; #include "imports/stdlib.fc";
+;; #include "imports/params.fc";
+;; #include "imports/constants.fc";
+;; #include "imports/jetton-utils.fc";
+;; #include "imports/op-codes.fc";
+;; #include "imports/utils.fc";
+;; #include "./wallet.fc";
+;; #pragma version >=0.2.0;
+
+
+
+
+const min_tons_for_storage = 10000000; ;; 0.01 TON
+const gas_consumption = 10000000; ;; 0.01 TON
+
+
+
+;; (int, slice, slice, cell) load_data() inline {
+;;     slice ds = get_data().begin_parse();
+;;     return (ds~load_coins(), ds~load_msg_addr(), ds~load_msg_addr(), ds~load_ref());
+;; }
+
+;; () save_data (int balance, slice owner_address, slice jetton_master_address, cell jetton_wallet_code) impure inline {
+;;     set_data(pack_jetton_wallet_data(balance, owner_address, jetton_master_address, jetton_wallet_code));
+;; }
+
+
+int get_balance(slice token) method_id {
+    ;; return(load_data().get_balance(token));
+    return 1000;
+}
+
+
+
+int calculateTokenSwapRate(slice token) method_id  {    
+    int token1_balance = 1000;
+    int token2_balance = 1000;
+    int amount = 500;
+    return ((token1_balance * token2_balance) / (token1_balance + amount)) * 10000;
+}
+
+
+
+int doSomeThing() method_id  {
+    return 1000;
+}
+
+
+() recv_internal(int my_balance, int msg_value, cell in_msg_full, slice in_msg_body) impure {
+
+}

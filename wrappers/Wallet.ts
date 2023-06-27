@@ -1,6 +1,11 @@
 import { Address, beginCell, Cell, Contract, contractAddress, ContractProvider, Sender, SendMode } from 'ton-core';
 
-export type WalletConfig = {};
+export type WalletConfig = {
+    // ownerAddress: Address;
+    // minterAddress: Address;
+    // walletCode: Cell;
+    // balance: bigint;
+};
 
 export function walletConfigToCell(config: WalletConfig): Cell {
     return beginCell().endCell();
