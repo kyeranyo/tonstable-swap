@@ -15,5 +15,7 @@ export async function run(provider: NetworkProvider, args: string[]) {
             queryId: Date.now()
         });
 
+
+    // ui.write((await jettonWallet.getBalance()).toString());
     ui.write('Burned successfully!');
 }

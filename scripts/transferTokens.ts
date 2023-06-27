@@ -6,7 +6,7 @@ import { randomAddress } from '@ton-community/test-utils';
 export async function run(provider: NetworkProvider, args: string[]) {
     const ui = provider.ui();
 
-    const address_minter = Address.parse(args.length > 0 ? args[0] : await ui.input('Minter address'));
+    // const address_minter = Address.parse(args.length > 0 ? args[0] : await ui.input('Minter address'));
     const address = Address.parse(args.length > 0 ? args[0] : await ui.input('JettonWallet address'));
 
     const jettonWallet = provider.open(JettonWallet.createFromAddress(address));
@@ -19,6 +19,5 @@ export async function run(provider: NetworkProvider, args: string[]) {
             queryId: Date.now()
         });
     
-    console.log();
     ui.write('Transfered successfully!');
 }
