@@ -20,39 +20,49 @@ export async function run(provider: NetworkProvider,  args: string[]) {
     await jettonMinter.sendDeploy(provider.sender(), toNano('0.05'));
 
     await provider.waitForDeploy(jettonMinter.address);
+
+
+    // it("offchain and onchain jwallet should return the same address", async () => {
+    //     const jettonWallet = provider.open(JettonWallet.createFromAddress(address));
+    //     const participantJwalletAddress = await minterContract.getWalletAddress(PARTICIPANT_ADDRESS_1);
+    //     expect(jettonWallet.address).to.equal(participantJwalletAddress.toFriendly());
+    //   });
+
+
     /////////////////////////////////////////////////////////////////////
 
     await jettonMinter.sendMint(provider.sender(), {
         value: toNano('0.2'),
         amount: toNano('0.01'),
-        jettonAmount: toNano('10'),
+        jettonAmount: toNano('20'),
         toAddress: provider.sender().address as Address,
         queryId: Date.now()
     });
 
     await provider.waitForDeploy(jettonMinter.address);
+
     ///////////////////////////////////////////////////////////////////////////
     // const ui = provider.ui();
 
-    // // const address = Address.parse(args.length > 0 ? args[0] : await ui.input('JettonWallet address'));
-    // const address =  Address.parse("EQBk2RnATouZMDllbUVZPfg-FKw-9jY9naY6NDYc36H5D4Fi");
+    // const address = Address.parse(args.length > 0 ? args[0] : await ui.input('JettonWallet address'));
+    const address =  Address.parse("EQBk2RnATouZMDllbUVZPfg-FKw-9jY9naY6NDYc36H5D4Fi");
 
-    // const re_address =  Address.parse("EQD4-czwqbMTsC1EETqbVtay0ruY4lAtDvq2ec7QsbcxeNIg");
+    const re_address =  Address.parse("EQD4-czwqbMTsC1EETqbVtay0ruY4lAtDvq2ec7QsbcxeNIg");
 
-    // const jettonWallet = provider.open(JettonWallet.createFromAddress(address));
+    const jettonWallet = provider.open(JettonWallet.createFromAddress(address));
     // await jettonWallet.sendDeploy(provider.sender(), toNano('0.05'));
 
-    // await jettonWallet.sendTransfer(provider.sender(), {
-    //     value: toNano('0.2'),
-    //     fwdAmount: toNano('0.05'),
-    //     jettonAmount: toNano('20'),
-    //     toAddress: re_address,
-    //     queryId: Date.now()
-    // });
+    await jettonWallet.sendTransfer(provider.sender(), {
+        value: toNano('0.2'),
+        fwdAmount: toNano('0.05'),
+        jettonAmount: toNano('21'),
+        toAddress: re_address,
+        queryId: Date.now()
+    });
 
-    // await provider.waitForDeploy(jettonWallet.address);
+    await provider.waitForDeploy(jettonWallet.address);
 // console.log();
-// ui.write('Transfered successfully!');
+    console.log('Transfered successfully!');
 
 ////////////////////////////////////////////////////////////////////////////
     // console.log("Balance: ", await jettonWallet.getBalance());
