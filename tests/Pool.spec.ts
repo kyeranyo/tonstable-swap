@@ -191,10 +191,15 @@ describe('JettonWallet', () => {
         // console.log("Sender after transfer: ",await Token.getTotalsupply());
         console.log("Receiver's balance after transfering:  ", await jettonWallet_receiver.getBalance());
         console.log("Sender's balance after transfering:  ", await jettonWallet_sender.getBalance());
-
     });
+
+
+    it('should return calculateTokenRates', async () => {
+        let amount = toNano(100);
+        const result = await jettonWallet_sender.calculateTokenRates(toNano(100n));
+        console.log("calculateTokenRates:  ", result);
+    });
+
+
 });
-
-
-
 

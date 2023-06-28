@@ -1,6 +1,6 @@
 import { Blockchain, SandboxContract, TreasuryContract } from '@ton-community/sandbox';
 import { Cell, toNano, Address, beginCell } from 'ton-core';
-import { JettonWallet } from '../wrappers/JettonWallet';
+import { JettonWallet } from '../wrappers/Pool';
 import '@ton-community/test-utils';
 import { compile } from '@ton-community/blueprint';
 import { Token } from '../wrappers/Token';
@@ -109,90 +109,90 @@ describe('JettonWallet', () => {
     });
     // it('should deploy', async () => {});
 
-    it('should deploy', async () => {
-        // the check is done inside beforeEach
-        // blockchain and jettonWallet are ready to use
-        console.log("DEPLOYING");
-        console.log("Sender's wallet address:  ", await jettonWallet_sender.address);
-        console.log("Receiver's wallet address  ", await jettonWallet_receiver.address);
-        // console.log("Balance of sender's wallet after deploying:  ",await jettonWallet.getBalance());
-    });
+    // it('should deploy', async () => {
+    //     // the check is done inside beforeEach
+    //     // blockchain and jettonWallet are ready to use
+    //     console.log("DEPLOYING");
+    //     console.log("Sender's wallet address:  ", await jettonWallet_sender.address);
+    //     console.log("Receiver's wallet address  ", await jettonWallet_receiver.address);
+    //     // console.log("Balance of sender's wallet after deploying:  ",await jettonWallet.getBalance());
+    // });
 
-    it('should mint tokens', async () => {
-        console.log("MINTING");
+    // it('should mint tokens', async () => {
+    //     console.log("MINTING");
 
-        const mintResult = await token.sendMint(admin.getSender(), {
-            value: toNano('0.2'),
-            amount: toNano('0.05'),
-            jettonAmount: toNano('495'),
-            // toAddress: admin.getSender().address as Address,
-            toAddress: admin.getSender().address as Address,
+    //     const mintResult = await token.sendMint(admin.getSender(), {
+    //         value: toNano('0.2'),
+    //         amount: toNano('0.05'),
+    //         jettonAmount: toNano('495'),
+    //         // toAddress: admin.getSender().address as Address,
+    //         toAddress: admin.getSender().address as Address,
 
-        });
-    });
+    //     });
+    // });
 
-    it('should return token balance', async () => {
-        // check admin's balance
-        // const balance = await Token.getTotalsupply();
-        // console.log('balance', balance);
-        // console.log("Sender's wallet address:  ",await jettonWallet_sender.address);
-        // console.log("Balance of sender's wallet after minting:  ",await jettonWallet_sender.getBalance());
-        // console.log("Receiver's wallet address  ",await jettonWallet_sender.address);
+    // it('should return token balance', async () => {
+    //     // check admin's balance
+    //     // const balance = await Token.getTotalsupply();
+    //     // console.log('balance', balance);
+    //     // console.log("Sender's wallet address:  ",await jettonWallet_sender.address);
+    //     // console.log("Balance of sender's wallet after minting:  ",await jettonWallet_sender.getBalance());
+    //     // console.log("Receiver's wallet address  ",await jettonWallet_sender.address);
 
-        console.log("Balance of sender's wallet after minting:  ", await jettonWallet_sender.getBalance());
+    //     console.log("Balance of sender's wallet after minting:  ", await jettonWallet_sender.getBalance());
 
-    });
-
-
-    it('should burn balance', async () => {
-        const sendtransfer = await jettonWallet_sender.sendBurn(admin.getSender(), {
-            value: toNano('5'),
-            queryId: Date.now(),
-            jettonAmount: toNano('63')
-        });
-        console.log("Balance of sender's wallet after burning:  ", await jettonWallet_sender.getBalance());
-    });
-
-    it('should return token balance', async () => {
-        console.log("Balance of sender's wallet:  ", await jettonWallet_sender.getBalance());
-    });
+    // });
 
 
+    // it('should burn balance', async () => {
+    //     const sendtransfer = await jettonWallet_sender.sendBurn(admin.getSender(), {
+    //         value: toNano('5'),
+    //         queryId: Date.now(),
+    //         jettonAmount: toNano('63')
+    //     });
+    //     console.log("Balance of sender's wallet after burning:  ", await jettonWallet_sender.getBalance());
+    // });
 
-    it('Transfer Jetton', async () => {
-        const deployer = await blockchain.treasury('deployer');
-        console.log("TRANSFERING...");
-        // const oldTotalSupply = await JSON.parse(JSON.stringify.prototype.toJSON.toString();
-        // const oldTotalSupply = JSON.parse(JSON.stringify(await wallet.getBalance()));
-        // console.log('TotalSupply before transfering:',oldTotalSupply);   
-        // console.log("B2");
-        const sender1 = admin.getSender();
-        const receiver1 = user.getSender();
-        const sendtransfer = await jettonWallet_sender.sendTransfer(sender1, {
-            value: toNano('1'),
-            toAddress: user.address as Address,
-            queryId: Date.now(),
-            fwdAmount: toNano('0.05'),
-            // fwdAmount: toNano('1'),
-            jettonAmount: toNano('27')
-        });
-        expect(sendtransfer.transactions).toHaveTransaction({
-            from: sender1.address,
-            to: jettonWallet_sender.address,
-            success: true,
-            outMessagesCount: 1,
-        });
-        console.log("Check Balance");
-        // expect(await wallet.getBalance()).toEqual(toNano('20'));
-        // const newTotalSupply = await wallet.getBalance().toString();
-        // console.log('Banlance of sender after transfering: ' ,jettonWallet.);
-        // console.log('Banlance of receiver after transfering: ' ,wallet_receiver.getBalance().toString());
+    // it('should return token balance', async () => {
+    //     console.log("Balance of sender's wallet:  ", await jettonWallet_sender.getBalance());
+    // });
 
-        // console.log("Sender after transfer: ",await Token.getTotalsupply());
-        console.log("Receiver's balance after transfering:  ", await jettonWallet_receiver.getBalance());
-        console.log("Sender's balance after transfering:  ", await jettonWallet_sender.getBalance());
 
-    });
+
+    // it('Transfer Jetton', async () => {
+    //     const deployer = await blockchain.treasury('deployer');
+    //     console.log("TRANSFERING...");
+    //     // const oldTotalSupply = await JSON.parse(JSON.stringify.prototype.toJSON.toString();
+    //     // const oldTotalSupply = JSON.parse(JSON.stringify(await wallet.getBalance()));
+    //     // console.log('TotalSupply before transfering:',oldTotalSupply);   
+    //     // console.log("B2");
+    //     const sender1 = admin.getSender();
+    //     const receiver1 = user.getSender();
+    //     const sendtransfer = await jettonWallet_sender.sendTransfer(sender1, {
+    //         value: toNano('1'),
+    //         toAddress: user.address as Address,
+    //         queryId: Date.now(),
+    //         fwdAmount: toNano('0.05'),
+    //         // fwdAmount: toNano('1'),
+    //         jettonAmount: toNano('27')
+    //     });
+    //     expect(sendtransfer.transactions).toHaveTransaction({
+    //         from: sender1.address,
+    //         to: jettonWallet_sender.address,
+    //         success: true,
+    //         outMessagesCount: 1,
+    //     });
+    //     console.log("Check Balance");
+    //     // expect(await wallet.getBalance()).toEqual(toNano('20'));
+    //     // const newTotalSupply = await wallet.getBalance().toString();
+    //     // console.log('Banlance of sender after transfering: ' ,jettonWallet.);
+    //     // console.log('Banlance of receiver after transfering: ' ,wallet_receiver.getBalance().toString());
+
+    //     // console.log("Sender after transfer: ",await Token.getTotalsupply());
+    //     console.log("Receiver's balance after transfering:  ", await jettonWallet_receiver.getBalance());
+    //     console.log("Sender's balance after transfering:  ", await jettonWallet_sender.getBalance());
+
+    // });
 });
 
 

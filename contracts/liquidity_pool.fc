@@ -1,0 +1,34 @@
+#include "imports/stdlib.fc";
+
+
+
+(slice, slice, cell) load_data() impure inline {
+    cell data = get_data();
+    return unpack_liquidity_pool_data(data);
+} 
+
+() save_data(slice tokenA, slice tokenB, cell liquidity_pool_code) impure inline {
+    set_data(pack_liquidity_pool_data(tokenA, tokenB, liquidity_pool_code));
+}
+
+
+() recv_internal(int my_balance, int msg_value, cell in_msg_full, slice in_msg_body) impure {
+
+}
+
+int get_balance_token() method_id {
+    ;; (int balance, _, _, _) = load_data();
+    return 1000;
+}
+
+int calculateTokenRates(int amount) method_id {
+
+    int balanceTo = get_balance_token();
+    int balanceSend = get_balance_token();
+    int k = balanceTo * balanceSend;
+    int result = balanceSend - k / (balanceTo + amount);
+
+  
+    return result;
+  
+}

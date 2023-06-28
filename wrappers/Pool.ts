@@ -118,6 +118,18 @@ export class JettonWallet implements Contract {
     }
 
 
+    async calculateTokenRates(provider: ContractProvider, amount: numb): Promise<bigint> {
+        const result = (await provider.get('calculateTokenRates', [
+            {
+                type: 'bigint',
+                cell: beginCell().storeCoins(amount).endCell(),
+            } as any,
+        ])).stack;
+        return result.readBigNumber();
+    }
+
+
+
     // async internalTransfer(provider: ContractProvider, via: Sender,
     //     opts: { //balance,owner_address,jetton_master_address,jetton_wallet_code
     //         value: bigint;
