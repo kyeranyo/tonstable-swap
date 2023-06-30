@@ -1,5 +1,5 @@
 #include "imports/stdlib.fc";
-
+#include "./wallet.fc";
 
 
 (slice, slice, cell) load_data() impure inline {
@@ -11,6 +11,10 @@
     set_data(pack_liquidity_pool_data(tokenA, tokenB, liquidity_pool_code));
 }
 
+() transaction_token(int amount, slice token1, slice token2) impure inline {
+    int token_send = calculateTokenRates(amount, token1, token2);
+    send_tokens(token_send, token1);
+}
 
 () recv_internal(int my_balance, int msg_value, cell in_msg_full, slice in_msg_body) impure {
 
@@ -21,14 +25,13 @@ int get_balance_token() method_id {
     return 1000;
 }
 
-int calculateTokenRates(int amount) method_id {
+int calculateTokenRates(int amount, slice token1, slice token2) method_id {
 
     int balanceTo = get_balance_token();
     int balanceSend = get_balance_token();
     int k = balanceTo * balanceSend;
     int result = balanceSend - k / (balanceTo + amount);
 
-  
-    return result;
-  
+
+    return result;  
 }
