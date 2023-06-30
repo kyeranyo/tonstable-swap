@@ -19,15 +19,15 @@ export type JettonWalletConfig = {
     ownerAddress: Address;
     minterAddress: Address;
     walletCode: Cell;
-    balance: bigint;
+    // balance: bigint;
 };
 
 
 
 export function jettonWalletConfigToCell(config: JettonWalletConfig): Cell {
     return beginCell()
-        // .storeCoins(0)
-        .storeCoins(config.balance) /// balance
+        .storeCoins(0)
+        // .storeCoins(config.balance) /// balance
         .storeAddress(config.ownerAddress)
         .storeAddress(config.minterAddress)
         .storeRef(config.walletCode)
