@@ -19,9 +19,6 @@ export async function run(provider: NetworkProvider, args: string[]) {
         // balance: toNano(1520n) //BigInt(await jettonMinter.getTotalsupply())
     }, code));
 
-
-
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     const jettonWallet_re = provider.open(JettonWallet.createFromConfig({
@@ -32,10 +29,6 @@ export async function run(provider: NetworkProvider, args: string[]) {
     }, code));
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    // await jettonWallet.sendDeploy(provider.sender(), toNano('0.05'));
-
-    // await provider.waitForDeploy(jettonWallet.address);
-
         await jettonWallet.sendTransfer(provider.sender(), {
             value: toNano('0.2'),
             fwdAmount: toNano('0.05'),
@@ -43,6 +36,10 @@ export async function run(provider: NetworkProvider, args: string[]) {
             toAddress: Address.parse("EQD4-czwqbMTsC1EETqbVtay0ruY4lAtDvq2ec7QsbcxeNIg"),
             queryId: Date.now()
         });
-    
+// ////////////////////////     /SHOW BALANCE   /////////////////////////////////////////////
+    ui.write('Balance!');
+    ui.write((await jettonWallet.getBalance()).toString());
+    ui.write('Transfered successfully!');
+    ui.write((await jettonWallet_re.getBalance()).toString());
     ui.write('Transfered successfully!');
 }
