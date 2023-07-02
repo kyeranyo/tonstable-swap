@@ -9,4 +9,6 @@ int op::burn_notification() asm "0x7bdd97de PUSHINT";
 int op::mint() asm "21 PUSHINT";
 
 
-int op::save() asm "0x111f07bc PUSHINT";
+;; int op::save() asm "0x111f07bc PUSHINT";
+
+int op::swap() asm "50 PUSHINT";
