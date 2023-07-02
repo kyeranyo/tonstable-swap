@@ -52,6 +52,8 @@ int gas_consumption() asm "15000000 PUSHINT"; ;; 0.015 TON
                      = InternalMsgBody;
 -}
 
+
+
 () send_tokens (slice in_msg_body, slice sender_address, int msg_value, int fwd_fee) impure {
   int query_id = in_msg_body~load_uint(64);
   int jetton_amount = in_msg_body~load_coins();
@@ -101,13 +103,6 @@ int gas_consumption() asm "15000000 PUSHINT"; ;; 0.015 TON
   save_data(balance, owner_address, jetton_master_address, jetton_wallet_code);
 }
 
-{-
-  internal_transfer  query_id:uint64 amount:(VarUInteger 16) from:MsgAddress
-                     response_address:MsgAddress
-                     forward_ton_amount:(VarUInteger 16)
-                     forward_payload:(Either Cell ^Cell) 
-                     = InternalMsgBody;
--}
 
 () receive_tokens (slice in_msg_body, slice sender_address, int my_ton_balance, int fwd_fee, int msg_value) impure {
   ;; NOTE we can not allow fails in action phase since in that case there will be
@@ -243,11 +238,7 @@ int gas_consumption() asm "15000000 PUSHINT"; ;; 0.015 TON
     burn_tokens(in_msg_body, sender_address, msg_value, fwd_fee);
     return ();
   }
-  ;;create op::save() to save data for test
-  ;; if (op == op::save()) { ;; burn
-  ;;   save_data(balance, owner_address, jetton_master_address, jetton_wallet_code);
-  ;;   return ();
-  ;; }
+
   throw(0xffffff);
 }
 
@@ -267,6 +258,7 @@ int get_wallet_balance() method_id {
 }
 
 
-
-
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+() swap(slice sender,slice fromToken,slice toToken,int fromAmount,int toAmount,slice to) impure {
+    
+}

@@ -1,0 +1,409 @@
+#include "imports/stdlib.fc";
+
+
+
+
+
+
+
+;; () recv_internal(int my_balance, int msg_value, cell in_msg_full, slice in_msg_body) impure {
+
+;; }
+
+
+
+
+
+
+{-
+    This file is part of DeLab jetton-pool.
+
+    DeLab jetton-pool is free software: you can redistribute it and/or
+    modify it under the terms of the GNU General Public License as
+    published by the Free Software Foundation, either version 3 of
+    the License, or (at your option) any later version.
+
+    DeLab jetton-pool is distributed in the hope that it will be
+    useful, but WITHOUT ANY WARRANTY; without even the implied
+    warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+    See the GNU General Public License for more details.
+
+    Copyright (C) 2022 DeLab Team.
+-}
+
+#pragma version >=0.3.0;
+
+
+;; #include "libs/stdlib.fc";
+#include "imports/stdlib.fc";
+#include "libs/delib.fc";
+#include "utils/consts.fc";
+#include "utils/scheme.fc";
+#include "utils/context.fc";
+
+global int      self::inited?;
+global slice    self::initializer;
+global int      self::token_a_wall_set?;
+global int      self::token_b_wall_set?;
+global int      self::reward_amount;
+global int      self::last_reward_ts;
+global int      self::reward_interval;
+
+global slice    self::token_a_root;
+global slice    self::token_b_root;
+
+global slice    self::token_a_wall;
+global slice    self::token_b_wall;
+
+global int      self::token_b_balance;
+global int      self::token_b_shared;
+global int      self::token_a_staked;
+
+global cell     slef::store_contract_code;
+
+() load_data() impure inline_ref {
+    slice data = get_data().begin_parse();
+
+    int inited? = data~load_int(1);
+    throw_unless(ERR::CONSRTUCTOR, inited?);
+
+    self::inited?           = inited?;
+    self::initializer       = data~load_msg_addr();
+    self::token_a_wall_set? = data~load_int(1);
+    self::token_b_wall_set? = data~load_int(1);
+    self::reward_amount     = data~load_coins();
+    self::last_reward_ts    = data~load_uint(32);
+    self::reward_interval   = data~load_uint(32);
+
+    slice roots = data~load_ref().begin_parse();
+    self::token_a_root = roots~load_msg_addr();
+    self::token_b_root = roots~load_msg_addr();
+
+    slice walls = data~load_ref().begin_parse();
+    self::token_a_wall = walls~load_msg_addr();
+    self::token_b_wall = walls~load_msg_addr();
+
+    slice balances = data~load_ref().begin_parse();
+    self::token_b_balance = balances~load_coins();
+    self::token_b_shared  = balances~load_coins();
+    self::token_a_staked  = balances~load_coins();
+
+    cell slef::store_contract_code = data~load_ref();
+}
+
+() save_data() impure inline_ref {
+    builder data = begin_cell()
+        .store_int(self::inited?, 1)
+        .store_slice(self::initializer)
+        .store_int(self::token_a_wall_set?, 1)
+        .store_int(self::token_b_wall_set?, 1)
+        .store_coins(self::reward_amount)
+        .store_uint(self::last_reward_ts, 32)
+        .store_uint(self::reward_interval, 32);
+
+    builder roots = begin_cell()
+        .store_slice(self::token_a_root)
+        .store_slice(self::token_b_root);
+
+    builder walls = begin_cell()
+        .store_slice(self::token_a_wall)
+        .store_slice(self::token_b_wall);
+
+    builder balances = begin_cell()
+        .store_coins(self::token_b_balance)
+        .store_coins(self::token_b_shared)
+        .store_coins(self::token_a_staked);
+
+    data = data.store_ref(roots.end_cell());
+    data = data.store_ref(walls.end_cell());
+    data = data.store_ref(balances.end_cell());
+    data = data.store_ref(slef::store_contract_code);
+
+    set_data(data.end_cell());
+}
+
+cell token_transfer(int amount, slice to_address, slice response_address,
+                    slice token_wall, int ton_amount) inline {
+
+    cell body = pack_simple_token_transfer(msg::query_id, amount, to_address,
+                                            response_address, CONF::TOKEN_FWD_AMOUNT);
+
+    return delib::int_msg(token_wall, false, ton_amount, body, null());
+}
+
+() throw_tokens_128(slice to, slice token_wall, int amount) impure inline {
+    cell msg = token_transfer(amount, to, to, token_wall, 0);
+    send_raw_message(msg, MSG::ALL_NOT_RESERVED + MSG::IGNORE_ERRORS);
+
+    commit();
+    throw(ERR::NOT_ENOUGH);
+}
+
+(slice, cell) calc_store_contract(slice staker_address) inline {
+    cell contract_data = pack_store_data(my_address(), staker_address);
+    cell contract_init = delib::basic_state_init(slef::store_contract_code, contract_data);
+    return (delib::addrstd_by_state(CONF::WC, contract_init), contract_init);
+}
+
+() auth_by_store_contract(slice staker_address) impure inline {
+    (slice store_address, _) = calc_store_contract(staker_address);
+    throw_unless(ERR::ACCESS, equal_slice_bits(msg::sender, store_address));
+}
+
+int calc_to_share() inline {
+    int time_diif = now() - self::last_reward_ts;
+    int to_share = muldiv(time_diif, self::reward_amount, self::reward_interval);
+    return min(to_share, self::token_b_balance);
+}
+
+;; contract constructor (can be called only once)
+() constructor(slice msg_body) impure inline_ref {
+    slice ds = get_data().begin_parse();
+
+    throw_if(ERR::CONSRTUCTOR, ds~load_int(1));
+    throw_unless(ERR::ACCESS, equal_slice_bits(msg::sender, ds~load_msg_addr()));
+
+    ;; --------------------------------------------------------------------------
+    ;; this |--(provide_wallet)-> root_a  -(take_wallet)-> this -?(excesses)-> initializer
+    ;;      |--(provide_wallet)-> root_b  -(take_wallet)-> this -?(excesses)-> initializer
+    ;;      |-?(excesses)-> initializer
+    ;; --------------------------------------------------------------------------
+    throw_unless(ERR::NOT_ENOUGH, msg::value > MAIN::TARGET +
+                (msg::fwd_fee * 4) + (CONF::MAX_GAS * 5));
+
+    (slice token_a, slice token_b, int reward_amount,
+    int reward_interval, cell store_contract_code) = msg_body.unpack_constructor();
+
+    delib::force_addr(token_a, CONF::WC, false, ERR::ADDR_FORMAT);
+    delib::force_addr(token_b, CONF::WC, false, ERR::ADDR_FORMAT);
+
+    int  tval = CONF::MAX_GAS + msg::fwd_fee;
+    cell body = pack_provide_wallet(msg::query_id, my_address());
+    send_raw_message(delib::int_msg(token_a, false, tval, body, null()), MSG::SENDER_PAYS_FEES);
+    send_raw_message(delib::int_msg(token_b, false, tval, body, null()), MSG::SENDER_PAYS_FEES);
+
+    self::inited?           = true;
+    self::initializer       = msg::sender;
+    self::token_a_wall_set? = false;
+    self::token_b_wall_set? = false;
+    self::reward_amount     = reward_amount;
+    self::last_reward_ts    = 0;
+    self::reward_interval   = reward_interval;
+
+    self::token_a_root = token_a;
+    self::token_b_root = token_b;
+
+    self::token_a_wall = delib::addr_none();
+    self::token_b_wall = delib::addr_none();
+
+    self::token_b_balance = 0;
+    self::token_b_shared  = 0;
+    self::token_a_staked  = 0;
+
+    slef::store_contract_code = store_contract_code;
+
+    ctx::send_excesses(self::initializer, MSG::ALL_NOT_RESERVED + MSG::IGNORE_ERRORS);
+}
+
+;; function that accepts incoming token transfer
+() accept_tokens(slice msg_body) impure inline_ref {
+    int token_a? = equal_slice_bits(msg::sender, self::token_a_wall);
+    int token_b? = equal_slice_bits(msg::sender, self::token_b_wall);
+    throw_unless(ERR::ACCESS, token_a? | token_b?);
+
+    (int amount, slice sender) = (msg_body~load_coins(), msg_body~load_msg_addr());
+
+    if (token_a?) { ;; accept stake request
+        ;; this -(get_store_data)-> store -(take_recv_data)-> this -(next_stake)->
+        ;; -> store -(end_stake)-> this -?(excesses)-> initializer
+        if (msg::value < ((CONF::MAX_GAS * 5) + (msg::fwd_fee * 4)) ) {
+            throw_tokens_128(sender, self::token_a_wall, amount);
+        }
+
+        (slice store_address, cell store_init) = calc_store_contract(sender);
+        cell body = pack_get_store_data(msg::query_id, callback::store::next_stake,
+                                        begin_cell().store_coins(amount));
+
+        cell msg  = delib::int_msg(store_address, false, 0, body, store_init);
+        send_raw_message(msg, MSG::ALL_NOT_RESERVED);
+    }
+
+    if (token_b?) { ;; just top up the pool balance with b tokens
+        self::token_b_balance += amount;
+        ctx::send_excesses(sender, MSG::ALL_NOT_RESERVED + MSG::IGNORE_ERRORS);
+    }
+}
+
+;; function that sets addresses of token wallets
+() take_wallet(slice msg_body) impure inline_ref {
+    int ok? = false;
+
+    if (equal_slice_bits(msg::sender, self::token_a_root)) {
+        self::token_a_wall = msg_body~load_msg_addr();
+        self::token_a_wall_set? = true;
+        ok? = true;
+    }
+
+    if (equal_slice_bits(msg::sender, self::token_b_root)) {
+        self::token_b_wall = msg_body~load_msg_addr();
+        self::token_b_wall_set? = true;
+        ok? = true;
+    }
+
+    throw_unless(ERR::ACCESS, ok?);
+    ctx::send_excesses(self::initializer, MSG::ALL_NOT_RESERVED + MSG::IGNORE_ERRORS);
+}
+
+;; next_stake handler
+() next_stake(slice msg_body) impure inline_ref {
+    slice staker_address = msg_body~load_msg_addr();
+    auth_by_store_contract(staker_address);
+
+    (int staker::stamp, int staker::staked_a, int staker::reward_debt)
+    = unpack_staker_info(msg_body~load_ref().begin_parse());
+
+    int to_stake = msg_body~load_coins();
+
+    if (staker::staked_a > 0) {
+        int actual_fees = self::token_b_shared - staker::stamp;
+        int reward = muldiv(actual_fees, staker::staked_a, self::token_a_staked);
+        staker::reward_debt += reward;
+    }
+
+    self::token_a_staked += to_stake;
+    staker::staked_a += to_stake;
+    staker::stamp = self::token_b_shared;
+
+    if (self::last_reward_ts == 0) {
+        self::last_reward_ts = now();
+    }
+
+    builder fwd = begin_cell().store_slice(staker_address);
+    cell info = pack_staker_info(staker::stamp, staker::staked_a, staker::reward_debt);
+    cell body = pack_store_ext_data(msg::query_id, info, callback::store::end_stake_or_unstake, fwd);
+    cell msg = delib::int_msg(msg::sender, false, 0, body, null());
+    send_raw_message(msg, MSG::ALL_NOT_RESERVED);
+}
+
+;; end_stake_or_unstake handler
+() end_stake_or_unstake(slice msg_body) impure inline_ref {
+    slice staker_address = msg_body~load_msg_addr();
+    auth_by_store_contract(staker_address);
+
+    ctx::send_excesses(msg_body~load_msg_addr(), MSG::ALL_NOT_RESERVED + MSG::IGNORE_ERRORS);
+}
+
+() unstake(slice msg_body) impure inline_ref {
+    ;; this -(get_store_data)-> store -(take_recv_data)-> this -(next_unstake)->
+    ;; |-> store -(end_stake)-> this -?(excesses)-> initializer
+    ;; |-> ({transfer_chain} * 2)
+    int basic_chain = (CONF::MAX_GAS * 5) + (msg::fwd_fee * 4);
+    int transfer_chain = CONF::TOKEN_FWD_AMOUNT + (msg::fwd_fee * 3) + (CONF::MAX_GAS * 2);
+    throw_unless(ERR::NOT_ENOUGH, msg::value > basic_chain + (transfer_chain * 2));
+
+    int unstake_amount = msg_body~load_coins();
+
+    (slice store_address, _) = calc_store_contract(msg::sender);
+    builder fwd_body = begin_cell().store_coins(unstake_amount).store_coins(transfer_chain);
+    cell body = pack_get_store_data(msg::query_id, callback::store::next_unstake, fwd_body);
+
+    cell msg  = delib::int_msg(store_address, false, 0, body, null());
+    send_raw_message(msg, MSG::ALL_NOT_RESERVED);
+}
+
+() next_unstake(slice msg_body) impure inline_ref {
+    slice staker = msg_body~load_msg_addr();
+    auth_by_store_contract(staker);
+
+    (int staker::stamp, int staker::staked_a, int staker::reward_debt)
+    = unpack_staker_info(msg_body~load_ref().begin_parse());
+
+    (int uamount, int transfer_chain) = (msg_body~load_coins(), msg_body~load_coins());
+    throw_unless(ERR::NOT_ENOUGH_STAKE, staker::staked_a >= uamount);
+
+    int to_share = calc_to_share();
+    self::token_b_shared  += to_share;
+    self::token_b_balance -= to_share;
+
+    int actual_fees = self::token_b_shared - staker::stamp;
+    int reward = muldiv(actual_fees, uamount, self::token_a_staked);
+
+    self::token_a_staked -= uamount;
+    self::token_b_shared -= reward;
+
+    cell bodya = token_transfer(uamount, staker, staker, self::token_a_wall, transfer_chain);
+    cell bodyb = token_transfer(reward, staker, staker, self::token_b_wall, transfer_chain);
+    send_raw_message(bodya, MSG::SENDER_PAYS_FEES);
+    send_raw_message(bodyb, MSG::SENDER_PAYS_FEES);
+
+    staker::stamp = self::token_b_shared;
+    staker::staked_a -= uamount;
+    staker::reward_debt = 0;
+
+    builder fwd = begin_cell().store_slice(staker);
+    cell info = pack_staker_info(staker::stamp, staker::staked_a, staker::reward_debt);
+    cell body = pack_store_ext_data(msg::query_id, info, callback::store::end_stake_or_unstake, fwd);
+    cell msg = delib::int_msg(msg::sender, false, 0, body, null());
+
+    send_raw_message(msg, MSG::ALL_NOT_RESERVED);
+}
+
+;; function selector by msg::op
+() callselector(slice msg_body) impure inline_ref {
+    throw_if(0, msg::op == 0 | msg::bounced?); ;; ignore simple transfers or bounced
+    if (msg::op == op::main::constructor) { return constructor(msg_body); }
+
+    load_data();
+    if (msg::op == op::main::unstake) { return unstake(msg_body); }
+    if (msg::op == op::general::transfer_notification) { return accept_tokens(msg_body); }
+    if (msg::op == op::root::take_wallet_address) { return take_wallet(msg_body); }
+
+    if (msg::op == callback::store::next_stake) { return next_stake(msg_body); }
+    if (msg::op == callback::store::next_unstake) { return next_unstake(msg_body); }
+    if (msg::op == callback::store::end_stake_or_unstake) { return end_stake_or_unstake(msg_body); }
+
+    throw(0xffff); ;; not found
+}
+
+;; internal message entry point
+() recv_internal(int balance, int value, cell msg, slice msg_body) impure {
+    throw_if(0, msg_body.slice_empty?() | msg_body.slice_bits() < 32 + 64);
+
+    msg_body~ctx::load(msg, balance, value);
+    delib::force_addr(msg::sender, CONF::WC, false, ERR::ADDR_FORMAT);
+
+    ctx::reserve(MAIN::TARGET);
+    callselector(msg_body);
+    save_data();
+}
+
+(int, int, int, int, int, int, int, int) get_pool_info() method_id {
+    load_data();
+    int actual_token_b_shared = self::token_a_staked > 0
+        ? self::token_b_shared + calc_to_share() : 0;
+
+    return (self::inited? & self::token_a_wall_set? & self::token_b_wall_set?,
+            self::reward_amount,
+            self::last_reward_ts,
+            self::reward_interval,
+            self::token_b_balance,
+            actual_token_b_shared,  ;; actual
+            self::token_b_shared,   ;; from storage
+            self::token_a_staked);
+}
+
+([slice, slice], [slice, slice]) get_token_addresses() method_id {
+    load_data();
+    return ([self::token_a_root, self::token_a_wall],
+            [self::token_b_root, self::token_b_wall]);
+}
+
+(slice) calc_store_by_staker(slice staker_address) method_id {
+    load_data();
+    (slice store_address, _) = calc_store_contract(staker_address);
+    return store_address;
+}
+
+(int, int, int) parse_staker_info(slice info) method_id {
+    return unpack_staker_info(info); ;; (stamp, staked_a, reward_debt)
+}
